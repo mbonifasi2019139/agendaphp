@@ -1,5 +1,8 @@
 const formularioContactos = document.querySelector("#contacto"),
-  listadoContactos = document.querySelector("#listado-contactos tbody");
+  listadoContactos = document.querySelector("#listado-contactos tbody"),
+  inputBuscador = document.querySelector("#buscar"),
+  totalContactos = document.querySelectorAll("tbody tr");
+
 eventListeners();
 
 function eventListeners() {
@@ -9,6 +12,16 @@ function eventListeners() {
   // Listener para eliminar el boton
   if (listadoContactos) {
     listadoContactos.addEventListener("click", eliminarContacto);
+  }
+
+  // buscador
+  if (inputBuscador) {
+    inputBuscador.addEventListener("input", buscarContactos);
+  }
+
+  // Numero de contactos
+  if (totalContactos) {
+    numeroContactos();
   }
 }
 
@@ -71,40 +84,45 @@ function insertarDB(datos) {
       // crear contenedor para los botones
       const contenedorAcciones = document.createElement("td");
 
-      // Crear el icono de editar
-      const iconoEditar = document.createElement("i");
-      iconoEditar.classList.add("fas", "fa-pen-square");
+      if (contenedorAcciones) {
+        // Crear el icono de editar
+        const iconoEditar = document.createElement("i");
+        iconoEditar.classList.add("fas", "fa-pen-square");
 
-      // Crear el enlace para editar
-      const btnEditar = document.createElement("a");
-      btnEditar.appendChild(iconoEditar);
-      btnEditar.href = `editar.php?id=${respuesta.datos.id_insertado}`;
-      btnEditar.classList.add("btn", "btn-editar");
+        // Crear el enlace para editar
+        const btnEditar = document.createElement("a");
+        btnEditar.appendChild(iconoEditar);
+        btnEditar.href = `editar.php?id=${respuesta.datos.id_insertado}`;
+        btnEditar.classList.add("btn", "btn-editar");
 
-      // Agregarlo al padre
-      contenedorAcciones.appendChild(btnEditar);
+        // Agregarlo al padre
+        contenedorAcciones.appendChild(btnEditar);
 
-      //Crear el icono de eliminar
-      const iconoEliminar = document.createElement("i");
-      iconoEliminar.classList.add("fas", "fa-trash-alt");
+        //Crear el icono de eliminar
+        const iconoEliminar = document.createElement("i");
+        iconoEliminar.classList.add("fas", "fa-trash-alt");
 
-      // Crear el boton de eliminar
-      const btnEliminar = document.createElement("button");
-      btnEliminar.appendChild(iconoEliminar);
-      btnEliminar.setAttribute("data-id", respuesta.datos.id_insertado);
-      btnEliminar.classList.add("btn", "btn-borrar");
-      contenedorAcciones.appendChild(btnEliminar);
+        // Crear el boton de eliminar
+        const btnEliminar = document.createElement("button");
+        btnEliminar.appendChild(iconoEliminar);
+        btnEliminar.setAttribute("data-id", respuesta.datos.id_insertado);
+        btnEliminar.classList.add("btn", "btn-borrar");
+        contenedorAcciones.appendChild(btnEliminar);
 
-      // Agregarlo al tr
-      nuevoContacto.appendChild(contenedorAcciones);
+        // Agregarlo al tr
+        nuevoContacto.appendChild(contenedorAcciones);
 
-      // Agregarlo con los contactos
-      listadoContactos.append(nuevoContacto);
+        // Agregarlo con los contactos
+        listadoContactos.append(nuevoContacto);
 
-      // Resetear el form
-      document.querySelector("form").reset();
-      // Mostrar la notificacion
-      mostrarNotificacion("Contacto Creado Correctamente", "correcto");
+        // Resetear el form
+        document.querySelector("form").reset();
+        // Mostrar la notificacion
+        mostrarNotificacion("Contacto Creado Correctamente", "correcto");
+
+        // Actualizar el numero
+        numeroContactos();
+      }
     }
   };
   // enviar los datos
@@ -125,6 +143,7 @@ function actualizarRegistro(datos) {
       if (respuesta.respuesta === "correcto") {
         //mostrar notificacion de Correcto
         mostrarNotificacion("Contacto Editado Correctamente", "correcto");
+        numeroContactos();
       } else if (respuesta.respuesta === "error") {
         //Hubo un error
         mostrarNotificacion("Hubo un error", "error");
@@ -169,6 +188,7 @@ function eliminarContacto(e) {
             e.target.parentElement.parentElement.parentElement.remove();
             // Mostrar notificacion
             mostrarNotificacion("Contacto eliminado", "correcto");
+            numeroContactos();
           } else {
             // Mostramos una notificacion
             mostrarNotificacion("HUbo un error...", "error");
@@ -207,4 +227,39 @@ function mostrarNotificacion(mensaje, clase) {
       }, 500);
     }, 3000);
   }, 100);
+}
+/** Buscador de registros **/
+function buscarContactos(e) {
+  const expresion = new RegExp(e.target.value, "i"),
+    registros = document.querySelectorAll("tbody tr");
+
+  registros.forEach((registro) => {
+    registro.style.display = "none";
+
+    if (
+      registro.childNodes[1].textContent
+        .replace(/\s/g, " ")
+        .search(expresion) != -1
+    ) {
+      registro.style.display = "table-row";
+    }
+    numeroContactos();
+  });
+}
+/** Muestra el numero de contactos **/
+function numeroContactos() {
+  const contenedorNumero = document.querySelector(".total-contactos span");
+
+  if (contenedorNumero) {
+    let total = 0;
+    totalContactos.forEach((contacto) => {
+      if (
+        contacto.style.display === "" ||
+        contacto.style.display === "table-row"
+      ) {
+        total++;
+      }
+    });
+    contenedorNumero.textContent = total;
+  }
 }
